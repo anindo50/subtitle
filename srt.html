@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRT Translator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin: 10px 0 5px;
+        }
+        input[type="file"],
+        input[type="text"],
+        select,
+        input[type="submit"] {
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        .response-message {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SRT Translator</h1>
+        <form id="translationForm" enctype="multipart/form-data">
+            <label for="file">Upload SRT File:</label>
+            <input type="file" id="file" name="file">
+
+            <label for="file_url">Or Provide SRT File URL:</label>
+            <input type="text" id="file_url" name="file_url" placeholder="https://example.com/path/to/your/file.srt">
+
+            <label for="to_lang">Target Language:</label>
+            <select id="to_lang" name="to_lang" required>
+                <option value="bn">Bangla (bn)</option>
+                <option value="es">Spanish (es)</option>
+                <option value="fr">French (fr)</option>
+                <option value="de">German (de)</option>
+                <!-- Add more language options as needed -->
+            </select>
+
+            <input type="submit" value="Translate">
+        </form>
+        <div id="responseMessage" class="response-message"></div>
+    </div>
+
+    <script>
+        document.getElementById('translationForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch('http://127.0.0.1:5000/trans', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const contentType = blob.type;
+                if (contentType.startsWith('application/json')) {
+                    return blob.text().then(text => {
+                        const data = JSON.parse(text);
+                        document.getElementById('responseMessage').textContent = `Error: ${data.error}`;
+                        document.getElementById('responseMessage').className = 'error';
+                    });
+                } else {
+                    
+                    document.getElementById('responseMessage').textContent = 'Translation completed and file downloaded.';
+                    document.getElementById('responseMessage').className = 'success';
+                }
+            })
+            .catch(error => {
+                document.getElementById('responseMessage').textContent = `An error occurred: ${error.message}`;
+                document.getElementById('responseMessage').className = 'error';
+            });
+        });
+    </script>
+</body>
+</html>
